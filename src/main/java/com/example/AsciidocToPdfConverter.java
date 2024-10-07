@@ -16,66 +16,73 @@ import java.io.PrintWriter;
 public class AsciidocToPdfConverter {
 
     public static void main(String[] args) {
-        // Vérifie si le chemin du répertoire source est fourni
-        if (args.length < 1) {
-            System.out.println("Utilisation : java -jar asciidoc-to-pdf.jar <chemin_du_repertoire_source>");
-            return;
-        }
-
-        // Récupère le répertoire source depuis les arguments
-        File sourceDir = new File(args[0]);
-
-        // Vérifie si le répertoire existe
-        if (!sourceDir.exists() || !sourceDir.isDirectory()) {
-            System.out.println("Erreur : le répertoire source " + sourceDir.getAbsolutePath() + " n'existe pas ou n'est pas un répertoire.");
-            return;
-        }
+        // Définir les chemins des répertoires à parcourir
+        String[] modulePaths = {
+            "module1/doc",
+            "module2/doc"
+        };
 
         // Crée une instance d'Asciidoctor
         Asciidoctor asciidoctor = Factory.create();
+        File tempAdocFile = new File("temp_combined.adoc"); // Fichier temporaire
 
-        try {
-            // Filtre pour ne traiter que les fichiers .adoc
-            FilenameFilter adocFilter = (dir, name) -> name.toLowerCase().endsWith(".adoc");
-            File[] adocFiles = sourceDir.listFiles(adocFilter);
+        try (PrintWriter writer = new PrintWriter(tempAdocFile)) {
+            // Parcours chaque répertoire spécifié
+            for (String modulePath : modulePaths) {
+                File moduleDir = new File(modulePath);
 
-            if (adocFiles != null && adocFiles.length > 0) {
-                // Crée un fichier temporaire pour concaténer le contenu
-                File tempAdocFile = new File(sourceDir, "temp_combined.adoc");
-                try (PrintWriter writer = new PrintWriter(tempAdocFile)) {
-                    for (File adocFile : adocFiles) {
-                        // Lit le contenu de chaque fichier .adoc et l'écrit dans le fichier temporaire
-                        String content = readFile(adocFile);
-                        writer.println(content);
-                        writer.println("\n"); // Ajoute une nouvelle ligne entre les fichiers
-                    }
+                // Vérifie si le répertoire existe
+                if (!moduleDir.exists() || !moduleDir.isDirectory()) {
+                    System.out.println("Erreur : le répertoire " + moduleDir.getAbsolutePath() + " n'existe pas ou n'est pas un répertoire.");
+                    continue;
                 }
 
-                // Détermine le nom du fichier PDF de sortie
-                File pdfFile = new File(sourceDir, "combined_output.pdf");
-
-                // Configure les options pour la sortie en PDF
-                Options options = OptionsBuilder.options()
-                        .backend("pdf")
-                        .safe(SafeMode.UNSAFE)
-                        .toFile(pdfFile)
-                        .get();
-
-                // Convertit le fichier temporaire .adoc en .pdf
-                asciidoctor.convertFile(tempAdocFile, options);
-                System.out.println("Conversion terminée : " + pdfFile.getAbsolutePath());
-
-                // Supprime le fichier temporaire
-                tempAdocFile.delete();
-            } else {
-                System.out.println("Aucun fichier .adoc trouvé dans le répertoire " + sourceDir.getAbsolutePath());
+                // Trouve et lit les fichiers .adoc dans le répertoire
+                findAndReadAdocFiles(moduleDir, writer);
             }
+        } catch (IOException e) {
+            System.out.println("Une erreur est survenue lors de la création du fichier temporaire : " + e.getMessage());
+            return;
+        }
+
+        try {
+            // Détermine le nom du fichier PDF de sortie
+            File pdfFile = new File("combined_output.pdf");
+
+            // Configure les options pour la sortie en PDF
+            Options options = OptionsBuilder.options()
+                    .backend("pdf")
+                    .safe(SafeMode.UNSAFE)
+                    .toFile(pdfFile)
+                    .get();
+
+            // Convertit le fichier temporaire .adoc en .pdf
+            asciidoctor.convertFile(tempAdocFile, options);
+            System.out.println("Conversion terminée : " + pdfFile.getAbsolutePath());
         } catch (Exception e) {
             System.out.println("Une erreur est survenue lors de la conversion : " + e.getMessage());
-            e.printStackTrace();
         } finally {
+            // Supprime le fichier temporaire
+            tempAdocFile.delete();
             // Libère les ressources
             asciidoctor.shutdown();
+        }
+    }
+
+    // Méthode pour trouver et lire les fichiers .adoc dans un répertoire
+    private static void findAndReadAdocFiles(File dir, PrintWriter writer) throws IOException {
+        FilenameFilter adocFilter = (d, name) -> name.toLowerCase().endsWith(".adoc");
+        File[] adocFiles = dir.listFiles(adocFilter);
+
+        // Lire les fichiers .adoc dans le répertoire courant
+        if (adocFiles != null) {
+            for (File adocFile : adocFiles) {
+                String content = readFile(adocFile);
+                writer.println(content);
+                writer.println("\n"); // Ajoute une nouvelle ligne entre les fichiers
+            }
+        } else {
+            System.out.println("Aucun fichier .adoc trouvé dans le répertoire " + dir.getAbsolutePath());
         }
     }
 
