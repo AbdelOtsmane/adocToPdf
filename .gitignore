@@ -1,1 +1,9 @@
-node_modules
+# Ignorer le répertoire target
+target/
+
+# Ignorer le fichier de sortie PDF
+combined_output.pdf
+
+# Ignorer d'autres fichiers ou répertoires, si nécessaire
+*.class
+*.jar
