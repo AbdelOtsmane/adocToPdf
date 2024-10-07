@@ -1,0 +1,35 @@
+= Document 1: Introduction to AsciiDoc
+:toc:
+
+== Chapter 1: Getting Started
+
+AsciiDoc is a lightweight markup language for creating documentation, articles, books, and more.
+
+=== 1.1 Basic Syntax
+
+Here are some basic AsciiDoc syntax examples:
+
+* *Bold text*
+* _Italic text_
+* `Monospace text`
+
+== Chapter 2: Advanced Features
+
+AsciiDoc offers many advanced features for creating rich documents.
+
+=== 2.1 Code Blocks
+
+Here's an example of a code block:
+
+[source,java]
+----
+public class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+    }
+}
+----
+
+== Conclusion
+
+AsciiDoc is a powerful tool for creating various types of documentation.
