@@ -1,6 +1,6 @@
 # PDF generator from .adoc
 
-## This is my first java documentayion creator
+## This is a java documentaion creator
 
 from .adoc i create a document and export it in pdf
 
